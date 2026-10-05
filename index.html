@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEST | Reading Assignment 1</title>
+    <title>NEST | Reading Assignment 4</title>
     <style>
         :root {
             --primary: #dc2626; /* Blood red */
@@ -624,7 +624,7 @@
     </div>
 
     <script>
-        const ASSIGNMENT_NAME = "NEST: Reading Exercise 1";
+        const ASSIGNMENT_NAME = "NEST: Reading Exercise 4";
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL7UqB79-fNZmL1Dskt5wOVgaur4qcYuyQvWosRVCWEFBg-clReIKD6BzGzf4cJkbz/exec';
 
         let timeLeft = 20 * 60; // 20 minutes for Reading Passage
@@ -856,20 +856,20 @@
         function sendDataToSheets(studentName, classCode, score, total) {
             const statusText = document.getElementById('sync-status');
             
-            const payload = {
-                timestamp: new Date().toISOString(),
-                studentName: studentName,
-                classCode: classCode,
-                assignmentName: ASSIGNMENT_NAME,
-                score: score,
-                total: total
-            };
+            // Build the URL parameters exactly how the Apps Script expects them
+            const submission = new URLSearchParams();
+            submission.set("assignmentName", ASSIGNMENT_NAME);
+            submission.set("assignment", ASSIGNMENT_NAME);
+            submission.set("name", studentName);
+            submission.set("studentClass", classCode);
+            submission.set("score", String(score));
+            submission.set("total", String(total));
 
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            // Send as a GET request with the parameters mapped to the URL
+            fetch(`${GOOGLE_SCRIPT_URL}?${submission.toString()}`, {
+                method: "GET",
+                mode: "no-cors",
+                cache: "no-store"
             })
             .then(() => {
                 statusText.innerText = "Results successfully synced to NEST database. You may now close the window.";
