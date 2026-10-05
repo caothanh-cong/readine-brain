@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEST | Reading Assignment 1</title>
+    <style>
+        :root {
+            --primary: #dc2626; /* Blood red */
+            --primary-hover: #b91c1c;
+            --success: #10b981; /* Green for correct */
+            --bg-dark: #121212; 
+            --bg-card: #1e1e1e;
+            --bg-input: #262626;
+            --text-main: #f5f5f5;
+            --text-muted: #a3a3a3;
+            --border-color: #3f3f46;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Login Screen --- */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #262626 0%, #121212 100%);
+            z-index: 10;
+        }
+
+        .login-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+            border: 2px solid var(--primary);
+            object-fit: cover;
+        }
+
+        .code-art {
+            font-family: monospace;
+            color: var(--text-main);
+            white-space: pre;
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+            text-shadow: 2px 2px 0px rgba(220, 38, 38, 0.5);
+        }
+
+        .login-form {
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--primary);
+            width: 320px;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #52525b;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- Main Assignment Interface --- */
+        #assignment-screen {
+            display: none;
+            width: 100%;
+            max-width: 1600px;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .student-info span {
+            margin-right: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .timer {
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+            background: var(--bg-input);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .timer.warning {
+            color: var(--primary);
+            border-color: var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reading-panel, .questions-container {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .reading-panel {
+            border-right: 1px solid var(--border-color);
+            background: #171717;
+            display: flex;
+            flex-direction: column;
+            text-align: justify;
+        }
+
+        .reading-hero-img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .passage-title {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .passage-text p {
+            margin-bottom: 1.5rem;
+            color: #d4d4d8;
+        }
+
+        .questions-container {
+            background: var(--bg-dark);
+            scroll-behavior: smooth;
+        }
+
+        h2 {
+            color: var(--text-main);
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* --- Highlight Tool Styling --- */
+        mark.user-highlight {
+            background-color: rgba(236, 201, 75, 0.4);
+            color: inherit;
+            padding: 0.1rem 0;
+            border-radius: 2px;
+            cursor: pointer;
+            border-bottom: 1px dashed #ecc94b;
+        }
+
+        mark.user-highlight:hover {
+            background-color: rgba(236, 201, 75, 0.6);
+        }
+
+        #highlight-popup {
+            display: none;
+            position: fixed;
+            background: var(--bg-input);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            font-weight: bold;
+        }
+
+        #highlight-popup:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .question-block {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--border-color);
+            transition: border-left-color 0.3s;
+        }
+
+        .question-block:hover {
+            border-left-color: var(--primary);
+        }
+
+        .q-input {
+            background: var(--bg-input);
+            border: 1px solid #71717a;
+            color: var(--text-main);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            width: 200px;
+            font-family: monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .q-input.short-input {
+            width: 60px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .q-input:focus {
+            outline: none;
+            border-color: var(--text-main);
+        }
+
+        .q-input.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .q-input.incorrect {
+            border-color: var(--primary);
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .radio-group label {
+            display: block;
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .radio-group label:hover {
+            background: #3f3f46;
+        }
+        
+        .radio-group input[type="radio"] {
+            margin-right: 10px;
+            accent-color: var(--primary);
+        }
+
+        .matching-list {
+            background: var(--bg-input);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            border: 1px dashed var(--border-color);
+        }
+
+        .matching-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .matching-list li {
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .matching-list strong {
+            color: var(--text-main);
+            display: inline-block;
+            width: 25px;
+        }
+
+        /* --- Inline Explanations --- */
+        .explanation-box {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            background: var(--bg-input);
+            border-left: 4px solid var(--border-color);
+        }
+
+        .explanation-box.correct-exp {
+            border-left-color: var(--success);
+        }
+
+        .explanation-box.incorrect-exp {
+            border-left-color: var(--primary);
+        }
+
+        .exp-text {
+            color: var(--text-muted);
+            display: block;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* --- Results Summary --- */
+        #results-summary {
+            display: none;
+            margin-top: 3rem;
+            padding: 2.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.1);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+            margin: 0.5rem 0;
+            font-family: monospace;
+        }
+
+        .tier-message {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .tier-title {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #sync-status {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <img src="NEST Logo.png" alt="NEST Logo" class="login-logo">
+        <div class="code-art">
+███╗   ██╗███████╗███████╗████████╗
+████╗  ██║██╔════╝██╔════╝╚══██╔══╝
+██╔██╗ ██║█████╗  ███████╗   ██║   
+██║╚██╗██║██╔══╝  ╚════██║   ██║   
+██║ ╚████║███████╗███████║   ██║   
+╚═╝  ╚═══╝╚══════╝╚══════╝   ╚═╝
+        </div>
+        <div class="login-form">
+            <div class="input-group">
+                <label>Student Name</label>
+                <input type="text" id="studentName" placeholder="Enter your full name" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Class Code</label>
+                <input type="text" id="classCode" placeholder="e.g., N04A, N05C" required autocomplete="off">
+            </div>
+            <button onclick="startTest()">Commence Assignment</button>
+        </div>
+    </div>
+
+    <!-- Main Assignment Screen -->
+    <div id="assignment-screen">
+        <div class="header">
+            <div class="student-info">
+                <span id="display-name">Student: </span>
+                <span id="display-class">Class: </span>
+            </div>
+            <div class="timer" id="timer">20:00</div>
+        </div>
+        
+        <div class="workspace">
+            <!-- Floating Highlight Popup -->
+            <div id="highlight-popup" onclick="applyHighlight()">Highlight</div>
+
+            <!-- Reading Panel -->
+            <div class="reading-panel">
+                <img src="Nest_Study.png" alt="NEST Study Environment" class="reading-hero-img">
+                <h1 class="passage-title">How the mind ages</h1>
+                
+                <div class="passage-text">
+                    <p>The way mental function changes is largely determined by three factors - mental lifestyle, the impact of chronic disease and flexibility of the mind.</p>
+
+                    <p>Experiments have shown that younger monkeys consistently outperform their older colleagues on memory tests. Formerly, psychologists concluded that memory and other mental functions in humans deteriorate over time because of changes in the brain. Thus mental decline after young adulthood appeared inevitable. The truth, however, is not quite so simple.</p>
+
+                    <p>Stanley Rapoport at the National Institute of Health in the United States measured the flow of blood in the brains of old and young people as they completed different tasks. Since blood flow reflects neural activity, Rapoport could compare which networks of neurons were the same. The neural networks they used were significantly different. 'The older subjects used different internal strategies to accomplish comparable results at the same time,' Rapoport says. At the Georgia Institute of Technology, psychologist Timothy Salthouse compared a group of fast and accurate typists of college age with another group in their 60s. Both groups typed 60 words a minute. The older typists, it turned out, achieved their speed with cunning little strategies that made them more efficient than their younger counterparts. They made fewer finger shifts, gaining a fraction of a second here and there. They also read ahead in the test. The neural networks involved in typing appear to have been reshaped to compensate for losses in motor skills or other age changes.</p>
+
+                    <p>In fact, there's evidence that deterioration in mental functions can actually be reversed. Neuropsychologist Marion Diamond at the University of California has shown that mental activity makes neurons sprout new dendrites which establish connections with other neurons. The dendrites shrink when the mind is idle. For example, 'when a rat is kept in isolation, the animal's brain shrinks, but if we put that rat with other rats in a large cage and give them an assortment of toys, we can show, after four days, significant differences in its brain,' says Diamond. After a month in the enriched surroundings, the whole cerebral cortex has expanded, as has its blood supply. 'But even in the enriched surroundings, rats get bored unless the toys are varied. Animals are just like we are. They need stimulation,' says Diamond. A busy mental lifestyle keeps the human mind fit, says Warner Schaie of Penn State University. 'People who regularly participate in challenging tasks retain their intellectual abilities better than mental couch potatoes.'</p>
+
+                    <p>In his studies, Schaie detected a decline in mental function among individuals who underwent lengthy stays in hospital for chronic illness. He postulated it might be due to the mental passivity encouraged by hospital routine.</p>
+
+                    <p>One of the most profoundly important mental functions is memory. Memory exists in more than one form, what we call knowledge - facts - is what psychologists such as Harry Bahrick of Ohio Wesleyan University call semantic memory. Events, conversations and occurrences in time and space, on the other hand, make up episodic memory. It's true that episodic memory begins to decline when most people are in their 50s, but it's never perfect at any age.</p>
+
+                    <p>Probing the longevity of knowledge, Bahrick tested 1,000 high school graduates to see how well they remembered the school subject algebra. Some had completed the course a month before, other 50 years earlier. Surprisingly, he found that a person's grasp of algebra did not depend on how long ago he'd taken the course. The determining factor was the duration of instruction. Those who had spent only a few months learning algebra forgot most of it within two or three years while others who had been instructed for longer remembered better. According to Bahrick, 'the long-term residue of knowledge remains stable over the decades, independent of the age of the person and the memory.'</p>
+
+                    <p>Perhaps even more important than the ability to remember is the ability to manage memory - a mental function known as metamemory. 'You could say metamemory is a byproduct of going to school,' says psychologist Robert Kail of Purdue University, 'The question-and-answer process, especially exam taking, helps children learn and teaches them how their memory functions. This may be one reason why the better educated a person is, the more likely they are to perform well in many aspects of life and in psychological assessments.' A group of adult novice chess players were compared with a group of child experts at the game. 'But when asked to remember the patterns of chess pieces arranged on a board, the children won. Because they'd played a lot of chess, their knowledge of chess was better organized than that of the adults, and their existing knowledge of chess served as a framework for new memory,' explains Kail.</p>
+                    
+                    <p>Cognitive style, another factor in maintaining mental function, is what Schaie calls the ability to adapt and roll with life's punches. 'He measured mental flexibility with questions and tests requiring people to carry out in an offbeat way an everyday activity they had done millions of times. One example was asking people to copy a paragraph substituting uppercase letters for lowercase ones. These tests seem silly, but flexible-minded people manage to complete them,' says Schaie. The rigid person responds with tension instead and performs poorly. Those who score highly on tests of cognition at an advanced age are those who tested high in mental flexibility at middle age.</p>
+
+                    <p>On a more optimistic note, one mental resource that only improves with time is specialized knowledge. Crystallised intelligence about one's occupation apparently does not decline at all until at least age 75. Vocabulary is another such specialized form of knowledge. Research clearly shows that vocabulary develops with time. Retired teachers and journalists consistently score higher on tests of vocabulary and general information than college students.</p>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="questions-container" id="quiz-form">
+                
+                <h2>Reading Passage 1: Questions 1-13</h2>
+                
+                <h3 style="margin-top: 1.5rem;">Questions 1-3</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Choose the correct letter A, B, C or D.</p>
+
+                <!-- Q1 -->
+                <div class="question-block radio-group">
+                    <p><strong>1.</strong> What does the writer say about the performance of older typists on the test?</p>
+                    <label><input type="radio" name="q1" value="A"> A. They used different motor skills from younger typists.</label>
+                    <label><input type="radio" name="q1" value="B"> B. They had been more efficiently trained than younger typists.</label>
+                    <label><input type="radio" name="q1" value="C"> C. They used more time-saving techniques than younger typists.</label>
+                    <label><input type="radio" name="q1" value="D"> D. They had better concentration skills than younger typists.</label>
+                    <div id="exp1" class="explanation-box"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="question-block radio-group">
+                    <p><strong>2.</strong> The experiment with the rats showed that</p>
+                    <label><input type="radio" name="q2" value="A"> A. brain structure only changed when the rats were given a familiar toy</label>
+                    <label><input type="radio" name="q2" value="B"> B. the rats became anxious after a lengthy period of time alone</label>
+                    <label><input type="radio" name="q2" value="C"> C. the rats lived longer when they were part of a social group</label>
+                    <label><input type="radio" name="q2" value="D"> D. the rats' brains expanded or shrank depending on the level of mental activity</label>
+                    <div id="exp2" class="explanation-box"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="question-block radio-group">
+                    <p><strong>3.</strong> A comparison between adults and children who played chess showed that</p>
+                    <label><input type="radio" name="q3" value="A"> A. the children were as capable as the adults of remembering a series of numbers</label>
+                    <label><input type="radio" name="q3" value="B"> B. the children had better recall of the layout of pieces</label>
+                    <label><input type="radio" name="q3" value="C"> C. the adults stored memories of chess moves in a more logical manner</label>
+                    <label><input type="radio" name="q3" value="D"> D. the adults had clearer memories of chess games they had played</label>
+                    <div id="exp3" class="explanation-box"></div>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Questions 4-9</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Complete the summary below. Choose <strong>ONE WORD ONLY</strong> from the passage for each answer.</p>
+
+                <!-- Q4-Q9 -->
+                <div class="question-block">
+                    <p style="line-height: 2.2;">
+                        Psychologists distinguish between two different types of memory: 
+                        <strong>4.</strong> <input type="text" class="q-input" id="q4"> and 
+                        <strong>5.</strong> <input type="text" class="q-input" id="q5"> memory. A study was conducted into people's knowledge of 
+                        <strong>6.</strong> <input type="text" class="q-input" id="q6"> to determine recall ability. This aspect of memory was found to be a function not of age but rather of length of tuition. 
+                        School also helps with a brain function called <strong>7.</strong> <input type="text" class="q-input" id="q7">. This is why a more highly educated person is generally more successful and does better in 
+                        <strong>8.</strong> <input type="text" class="q-input" id="q8"> tests. 
+                        Some of our mental functions remain unaffected by age or even improve. For example, as we get older, our knowledge of 
+                        <strong>9.</strong> <input type="text" class="q-input" id="q9"> increases.
+                    </p>
+                    <div id="exp4" class="explanation-box"></div>
+                    <div id="exp5" class="explanation-box"></div>
+                    <div id="exp6" class="explanation-box"></div>
+                    <div id="exp7" class="explanation-box"></div>
+                    <div id="exp8" class="explanation-box"></div>
+                    <div id="exp9" class="explanation-box"></div>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Questions 10-13</h3>
+                <p style="color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.95rem;">Look at the following statements and the list of people below.</p>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Match each statement with the correct person, <strong>A-E</strong>.</p>
+                
+                <div class="matching-list">
+                    <ul>
+                        <li><strong>A</strong> Stanley Rapoport</li>
+                        <li><strong>B</strong> Marion Diamond</li>
+                        <li><strong>C</strong> Warner Schaie</li>
+                        <li><strong>D</strong> Harry Bahrick</li>
+                        <li><strong>E</strong> Robert Kail</li>
+                    </ul>
+                </div>
+
+                <!-- Q10-Q13 -->
+                <div class="question-block">
+                    <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                        <strong>10.</strong> <input type="text" class="q-input short-input" id="q10" maxlength="1"> 
+                        The educational system makes students aware of how their memory works.
+                    </p>
+                    <div id="exp10" class="explanation-box"></div>
+
+                    <p style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1rem; margin-top: 1.5rem;">
+                        <strong>11.</strong> <input type="text" class="q-input short-input" id="q11" maxlength="1"> 
+                        <span>Although older people may use a different mental approach when completing a task, they can still achieve the same result as younger people.</span>
+                    </p>
+                    <div id="exp11" class="explanation-box"></div>
+
+                    <p style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 1rem; margin-top: 1.5rem;">
+                        <strong>12.</strong> <input type="text" class="q-input short-input" id="q12" maxlength="1"> 
+                        <span>Being open to new ways of doing things can have a positive impact on your mental condition as we get older.</span>
+                    </p>
+                    <div id="exp12" class="explanation-box"></div>
+
+                    <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; margin-top: 1.5rem;">
+                        <strong>13.</strong> <input type="text" class="q-input short-input" id="q13" maxlength="1"> 
+                        Both animals and humans need to exist in an environment full of interest.
+                    </p>
+                    <div id="exp13" class="explanation-box"></div>
+                </div>
+
+                <button id="submitBtn" onclick="submitTest()" style="margin-top: 1rem; padding: 1.25rem;">Submit Assessment</button>
+
+                <!-- Results Summary Inline -->
+                <div id="results-summary">
+                    <div class="tier-title" id="tier-title">Score</div>
+                    <div class="score-display"><span id="final-score" style="color: var(--primary);">0</span>/13</div>
+                    <div class="tier-message" id="tier-message">Processing results...</div>
+                    <span id="sync-status">Syncing results to database...</span>
+                    <br>
+                    <button onclick="location.reload()" style="background: transparent; border: 1px solid var(--text-muted); color: var(--text-main); margin-top: 1rem; width: auto; padding: 0.75rem 2rem;">Return to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ASSIGNMENT_NAME = "NEST: Reading Exercise 1";
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL7UqB79-fNZmL1Dskt5wOVgaur4qcYuyQvWosRVCWEFBg-clReIKD6BzGzf4cJkbz/exec';
+
+        let timeLeft = 20 * 60; // 20 minutes for Reading Passage
+        let timerInterval;
+
+        const answersMCQ = {
+            q1: "C",
+            q2: "D",
+            q3: "B"
+        };
+
+        const answersText = {
+            q4: ["semantic"],
+            q5: ["episodic"],
+            q6: ["algebra"],
+            q7: ["metamemory"],
+            q8: ["psychological"],
+            q9: ["vocabulary"],
+            q10: ["e"],
+            q11: ["a"],
+            q12: ["c"],
+            q13: ["b"]
+        };
+
+        const explanations = {
+            q1: "Older typists used cunning little strategies to save time, making them more efficient.",
+            q2: "The brain expanded in enriched surroundings and shrank in isolation, depending on mental activity.",
+            q3: "Children won when asked to remember the patterns of chess pieces on a board.",
+            q4: "Psychologists call knowledge/facts 'semantic memory'.",
+            q5: "Events and occurrences make up 'episodic memory'.",
+            q6: "Bahrick tested graduates to see how well they remembered algebra.",
+            q7: "Metamemory is described as a byproduct of going to school.",
+            q8: "Better educated people perform well in life and psychological assessments.",
+            q9: "Research clearly shows that vocabulary develops with time.",
+            q10: "Robert Kail (E) notes exam taking teaches children how memory functions.",
+            q11: "Stanley Rapoport (A) says older subjects used different strategies for comparable results.",
+            q12: "Warner Schaie (C) states challenging tasks help retain intellectual abilities.",
+            q13: "Marion Diamond (B) says animals are like us and need stimulation."
+        };
+
+        // --- Test-Grade Highlight Tool Logic ---
+        let currentRange = null;
+
+        document.querySelector('.workspace').addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            const popup = document.getElementById('highlight-popup');
+
+            if (!selection.isCollapsed && selection.toString().trim().length > 0) {
+                const range = selection.getRangeAt(0);
+                const workspaceContainer = document.querySelector('.workspace');
+
+                // Ensure selection is inside the test environment workspace
+                if (workspaceContainer.contains(range.commonAncestorContainer)) {
+                    currentRange = range;
+                    const rect = range.getBoundingClientRect();
+
+                    popup.style.top = `${rect.top - 40}px`;
+                    popup.style.left = `${rect.left + (rect.width / 2) - 40}px`;
+                    popup.style.display = 'block';
+                    return;
+                }
+            }
+            
+            if (e.target.id !== 'highlight-popup') {
+                popup.style.display = 'none';
+            }
+        });
+
+        function applyHighlight() {
+            if (!currentRange) return;
+
+            try {
+                const fragment = currentRange.extractContents();
+                const mark = document.createElement('mark');
+                
+                mark.className = 'user-highlight';
+                mark.title = 'Click to remove highlight';
+                
+                mark.addEventListener('click', function(e) {
+                    e.stopPropagation(); 
+                    const parent = this.parentNode;
+                    while (this.firstChild) {
+                        parent.insertBefore(this.firstChild, this);
+                    }
+                    parent.removeChild(this);
+                    parent.normalize();
+                    
+                    window.getSelection().removeAllRanges();
+                    document.getElementById('highlight-popup').style.display = 'none';
+                });
+
+                mark.appendChild(fragment);
+                currentRange.insertNode(mark);
+                window.getSelection().removeAllRanges();
+            } catch (err) {
+                console.log("Cross-boundary highlight restricted.", err);
+                alert("Please highlight text within a single paragraph or section.");
+            }
+
+            document.getElementById('highlight-popup').style.display = 'none';
+            currentRange = null;
+        }
+
+        function startTest() {
+            const name = document.getElementById('studentName').value.trim();
+            const code = document.getElementById('classCode').value.trim();
+
+            if (!name || !code) {
+                alert("Student Name and Class Code are required before accessing the file.");
+                return;
+            }
+
+            document.getElementById('display-name').innerText = `Student: ${name}`;
+            document.getElementById('display-class').innerText = `Class: ${code}`;
+            
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('assignment-screen').style.display = 'flex';
+
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                submitTest();
+                return;
+            }
+
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timerDisplay = document.getElementById('timer');
+            
+            timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 120) { // Warning at 2 minutes
+                timerDisplay.classList.add('warning');
+            }
+        }
+
+        function cleanString(str) {
+            return str.toLowerCase().replace(/[.,]/g, '').trim();
+        }
+
+        function submitTest() {
+            clearInterval(timerInterval);
+            let score = 0;
+            const total = 13;
+            const name = document.getElementById('studentName').value.trim() || "Anonymous (Timeout)";
+            const studentClass = document.getElementById('classCode').value.trim() || "Unknown";
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processing Results...";
+
+            // Process MCQ (1-3)
+            for (let i = 1; i <= 3; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const expBox = document.getElementById(`exp${i}`);
+                const radios = document.querySelectorAll(`input[name="q${i}"]`);
+                radios.forEach(r => r.disabled = true);
+                
+                if (selected && selected.value === answersMCQ[`q${i}`]) {
+                    score++;
+                    expBox.classList.add('correct-exp');
+                    expBox.innerHTML = `<span style="color: var(--success); font-weight: bold;">Correct! ✅</span><span class="exp-text">Explanation: "${explanations[`q${i}`]}"</span>`;
+                } else {
+                    expBox.classList.add('incorrect-exp');
+                    expBox.innerHTML = `<span style="color: var(--primary); font-weight: bold;">Incorrect ❌</span> The correct answer is: <strong>${answersMCQ[`q${i}`]}</strong><span class="exp-text">Explanation: "${explanations[`q${i}`]}"</span>`;
+                }
+                expBox.style.display = 'block';
+            }
+
+            // Process Fill-in-the-blanks & Matching (4-13)
+            for (let i = 4; i <= 13; i++) {
+                const inputEl = document.getElementById(`q${i}`);
+                const expBox = document.getElementById(`exp${i}`);
+                const inputVal = cleanString(inputEl.value);
+                inputEl.disabled = true;
+
+                if (answersText[`q${i}`].some(ans => cleanString(ans) === inputVal)) {
+                    score++;
+                    inputEl.classList.add('correct');
+                    expBox.classList.add('correct-exp');
+                    expBox.innerHTML = `<span style="color: var(--success); font-weight: bold;">Correct! ✅</span><span class="exp-text">Explanation: "${explanations[`q${i}`]}"</span>`;
+                } else {
+                    inputEl.classList.add('incorrect');
+                    expBox.classList.add('incorrect-exp');
+                    const correctAns = answersText[`q${i}`][0].toUpperCase();
+                    expBox.innerHTML = `<span style="color: var(--primary); font-weight: bold;">Incorrect ❌</span> The correct answer is: <strong>${correctAns}</strong><span class="exp-text">Explanation: "${explanations[`q${i}`]}"</span>`;
+                }
+                expBox.style.display = 'block';
+            }
+
+            // Summary display logic
+            document.getElementById('final-score').innerText = score;
+            let tierMsg = "";
+            let tierTitle = "";
+
+            if (score === total) {
+                tierTitle = "Mastery Level";
+                tierMsg = "Outstanding analytical skills! Your strategic reading is highly effective.";
+            } else if (score >= 10) {
+                tierTitle = "Advanced Level";
+                tierMsg = "Excellent performance. A strong command of specific information retrieval.";
+            } else if (score >= 7) {
+                tierTitle = "Intermediate Level";
+                tierMsg = "Solid comprehension. Review the explanations to refine your scanning techniques.";
+            } else {
+                tierTitle = "Foundational Level";
+                tierMsg = "Keep practicing. Focus on mapping keywords before diving into the text.";
+            }
+
+            document.getElementById('tier-title').innerText = tierTitle;
+            document.getElementById('tier-message').innerText = tierMsg;
+            document.getElementById('results-summary').style.display = 'block';
+            
+            submitBtn.style.display = 'none';
+
+            // Automatic scrolling to show results
+            setTimeout(() => {
+                document.getElementById('results-summary').scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 500);
+
+            // Transmit Data to Google Sheets
+            sendDataToSheets(name, studentClass, score, total);
+        }
+
+        function sendDataToSheets(studentName, classCode, score, total) {
+            const statusText = document.getElementById('sync-status');
+            
+            const payload = {
+                timestamp: new Date().toISOString(),
+                studentName: studentName,
+                classCode: classCode,
+                assignmentName: ASSIGNMENT_NAME,
+                score: score,
+                total: total
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                statusText.innerText = "Results successfully synced to NEST database. You may now close the window.";
+                statusText.style.color = "var(--success)";
+            })
+            .catch(error => {
+                console.error('Data transmission failed:', error);
+                statusText.innerText = "Network Error: Could not sync results. Please screenshot your score and send it to your instructor.";
+                statusText.style.color = "var(--primary)";
+            });
+        }
+    </script>
+</body>
+</html>
